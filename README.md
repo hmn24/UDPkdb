@@ -1,7 +1,7 @@
 # UDPkdb
-UDP Protocol for kdb - Hackish way which uses two languages XD
+UDP Protocol for kdb
 
-## Server Side (C):
+## Server Side:
 ```
 q)t:`udpQ 2: (`recvUDP;1)
 q)t[3303i]
@@ -17,7 +17,7 @@ q)c
 4
 ```
 
-## Client Side (C++):
+## Client Side (kdb+ one shot IPC Format):
 ```
 q)t:`udpQ 2: (`sendOneShotUDP;3)
 q)t["127.0.0.1";3303i;"a:1+1"]
@@ -25,7 +25,7 @@ q)t["127.0.0.1";3303i;"b:1+1"]
 q)t[`127.0.0.1;3303i;"c:1+3"]
 ```
 
-## Client Side (Vanilla kdb Format):
+## Client Side (vanilla kdb+ IPC Format):
 ```
 q)t:`udpQ 2: (`connectUDP;2)
 q)t[`127.0.0.1;3303i]
@@ -41,7 +41,7 @@ q)t[`127.0.0.1;3303i]
 q)t1[6i;"a:1+3"]
 ```
 
-## Comparison of performance
+## Performance Comparisons:
 
 Server side:
 ```

@@ -1,6 +1,8 @@
 # UDPkdb
 UDP Protocol for kdb
 
+Note that there's no return message on client side (It's assumed UDP isnt "guaranteed" even under safe payload)
+
 ## Server Side:
 ```
 q)t:`udpQ 2: (`recvUDP;1)

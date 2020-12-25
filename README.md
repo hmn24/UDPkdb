@@ -1,99 +1,43 @@
 # UDPkdb
 UDP Protocol for kdb
 
-Note that there's no return message on client side (It's assumed UDP isnt "guaranteed" even under safe payload)
+Only sync calls allowed (To find way to disable sendto from sd1 callback)
 
+A more straightforward way is to impose async-only (which can be left to the reader as a simple activity to delete codes), which means the return call from server-side callback doesn't have to go through the pain of serialising the returning K object, and the client side to deserialise it
+```
+Note that UDP Protocol is not meant for large messages, hence the choice of string messages from client side. Advantages are:
+1) Code density
+2) Strings are natural bytes
+3) Prevent use of .z.w callbacks not catered for here (and not intended for)
+```
+
+Compile with following commands:
+```
+gcc -shared -fPIC -o udpQ.so udpQ.c
+```
 ## Server Side:
 ```
-q)t:`udpQ 2: (`recvUDP;1)
-q)t[3303i]
-6i
-q)t[3304i]
-7i
-q)hclose 7
-q)a
-2
-q)b
-2
-q)c
-4
+Refer to sample script in udpQ.server.q
 ```
+## Client Side:
+```
+Refer to sample script in udpQ.client.q
 
-## Client Side (kdb+ one shot IPC Format):
+As for reasons discussed above, client can only send UDP-IPC calls in string-format only
 ```
-q)t:`udpQ 2: (`sendOneShotUDP;3)
-q)t["127.0.0.1";3303i;"a:1+1"]
-q)t["127.0.0.1";3303i;"b:1+1"]
-q)t[`127.0.0.1;3303i;"c:1+3"]
-```
-
-## Client Side (vanilla kdb+ IPC Format):
-```
-q)t:`udpQ 2: (`connectUDP;2)
-q)t[`127.0.0.1;3303i]
-6i
-q)hclose 6
-q)t1:`udpQ 2: (`sendUDPMsg;2)
-q)t1[6i;"a:1+1"]
-'Failed to send UDP Msg
-  [0]  t1[6i;"a:1+1"]
-       ^
-q)t[`127.0.0.1;3303i]
-6i
-q)t1[6i;"a:1+3"]
-```
-
 ## Performance Comparisons:
-
-Server side:
 ```
-(base) hming@hming:~/UDPkdb$ q -p 5050
-KDB+ 4.0 2020.05.04 Copyright (C) 1993-2020 Kx Systems
+UDP:
+q)h:hopenUDP[`127.0.0.1;3303i]
+q)\ts:10000 sendUDP[h;"b:1+1;2"]
+599 896
+q)\ts:10000 sendUDP[h;"b:1+1;2"]
+587 896
 
-q)t:`udpQ 2: (`recvUDP;1)
-q)t[3303i]
-8i
-```
-
-Client side:
-```
-(base) hming@hming:~/UDPkdb$ q
-KDB+ 4.0 2020.05.04 Copyright (C) 1993-2020 Kx Systems
-
-q)t:`udpQ 2: (`connectUDP;2)
-q)t[`127.0.0.1;3303i]
-6i
-q)t1:`udpQ 2: (`sendUDPMsg;2)
-q)h:hopen `::5050
-q)h
-7i
-
-
-Sync:
-q)\ts:1000 t1[6i;"{a::1+1}[]"]
-57 896
-q)\ts:1000 h "{a::1+1}[]"
-107 544
-q)\ts:1000 t1[6i;"{a::1+1}[]"]
-50 896
-q)\ts:1000 h "{a::1+1}[]"
-123 544
-q)\ts:1000 t1[6i;"{a::1+1}[]"]
-62 896
-q)\ts:1000 h "{a::1+1}[]"
-105 544
-
-Async:
-q)\ts:1000 t1[-6i;"{a::1+1}[]"]
-13 896
-q)\ts:1000 neg[h] "{a::1+1}[]"
-1 94944
-q)\ts:1000 t1[-6i;"{a::1+1}[]"]
-12 896
-q)\ts:1000 neg[h] "{a::1+1}[]"
-1 96256
-q)\ts:1000 t1[-6i;"{a::1+1}[]"]
-14 896
-q)\ts:1000 neg[h] "{a::1+1}[]"
-1 96256
+IPC:
+q)h1:hopen `::5050
+q)\ts:10000 h1 "b:1+1;2"
+790 544
+q)\ts:10000 h1 "b:1+1;2"
+776 544
 ```

@@ -34,7 +34,7 @@ q)\ts:10000 sendUDP[h;"b:1+1;2"]
 q)\ts:10000 sendUDP[h;"b:1+1;2"]
 587 896
 
-IPC:
+Vanilla TCP/IP:
 q)h1:hopen `::5050
 q)\ts:10000 h1 "b:1+1;2"
 790 544
